@@ -27,6 +27,8 @@ VITE_API_URL=http://localhost:3000
 
 `.env` contem configuracao local e nao deve ser commitado. Use `.env.example` como referencia.
 
+Dashboard inclui rota `Movimentações`, histórico filtrável e exportação XLSX/PDF de movimentações e inventário atual.
+
 ## Scripts
 
 ```bash

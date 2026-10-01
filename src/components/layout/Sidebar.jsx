@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutGrid, Package, Boxes } from 'lucide-react'
+import { LayoutGrid, Package, Boxes, ArrowRightLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const items = [
   { to: '/', label: 'Visão Geral', icon: LayoutGrid },
   { to: '/produtos', label: 'Produtos', icon: Package },
   { to: '/pallets', label: 'Pallets', icon: Boxes },
+  { to: '/movimentacoes', label: 'Movimentações', icon: ArrowRightLeft },
 ]
 
 export function Sidebar() {
