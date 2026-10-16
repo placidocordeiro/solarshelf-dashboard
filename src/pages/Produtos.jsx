@@ -20,6 +20,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { listarProdutos, criarProduto, editarProduto } from '@/api/produtos'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 
 export function Produtos() {
   const navigate = useNavigate()
@@ -32,20 +33,29 @@ export function Produtos() {
   const [form, setForm] = useState({ nome: '', descricao: '' })
   const [salvando, setSalvando] = useState(false)
 
-  const carregar = useCallback(async () => {
+  const atualizar = useCallback(async () => {
     try {
       const data = await listarProdutos()
       setProdutos(data || [])
     } catch (err) {
       setErro(err.message)
+    }
+  }, [])
+
+  const carregar = useCallback(async () => {
+    try {
+      setLoading(true)
+      await atualizar()
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [atualizar])
 
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  useAutoRefresh(atualizar, 10000)
 
   function abrirNovo() {
     setEditando(null)

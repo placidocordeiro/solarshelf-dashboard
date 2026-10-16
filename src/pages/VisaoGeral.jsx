@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import { listarProdutos } from '@/api/produtos'
 import { listarTags } from '@/api/tags'
 
@@ -31,24 +32,32 @@ export function VisaoGeral() {
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(null)
 
+  const atualizar = useCallback(async () => {
+    try {
+      const [produtosData, tagsData] = await Promise.all([
+        listarProdutos(),
+        listarTags(),
+      ])
+      setProdutos(produtosData || [])
+      setTags(tagsData || [])
+    } catch (err) {
+      setErro(err.message)
+    }
+  }, [])
+
   useEffect(() => {
     async function carregar() {
       try {
         setLoading(true)
-        const [produtosData, tagsData] = await Promise.all([
-          listarProdutos(),
-          listarTags(),
-        ])
-        setProdutos(produtosData || [])
-        setTags(tagsData || [])
-      } catch (err) {
-        setErro(err.message)
+        await atualizar()
       } finally {
         setLoading(false)
       }
     }
     carregar()
-  }, [])
+  }, [atualizar])
+
+  useAutoRefresh(atualizar, 10000)
 
   const totalProdutos = produtos.length
   const totalPallets = produtos.reduce((sum, p) => sum + (p.totalPallets || 0), 0)

@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/table'
 import { listarProdutos } from '@/api/produtos'
 import { listarTags, removerTag } from '@/api/tags'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 
 function formatDate(value) {
   if (!value) return '—'
@@ -52,7 +53,7 @@ export function Pallets() {
   const [lote, setLote] = useState('')
   const [mostrarHistorico, setMostrarHistorico] = useState(false)
 
-  const carregar = useCallback(async () => {
+  const atualizar = useCallback(async () => {
     try {
       const [tagsData, produtosData] = await Promise.all([
         listarTags({ produtoId, lote, incluirInativas: mostrarHistorico }),
@@ -62,14 +63,23 @@ export function Pallets() {
       setProdutos(produtosData || [])
     } catch (err) {
       setErro(err.message)
+    }
+  }, [produtoId, lote, mostrarHistorico])
+
+  const carregar = useCallback(async () => {
+    try {
+      setLoading(true)
+      await atualizar()
     } finally {
       setLoading(false)
     }
-  }, [produtoId, lote, mostrarHistorico])
+  }, [atualizar])
 
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  useAutoRefresh(atualizar, 10000)
 
   async function darSaida(tid) {
     if (!window.confirm('Confirmar saída deste pallet?')) return

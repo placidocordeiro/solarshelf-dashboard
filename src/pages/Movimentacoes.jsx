@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { listarProdutos } from '@/api/produtos'
 import { listarTags } from '@/api/tags'
 import { listarMovimentacoes } from '@/api/movimentacoes'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import { exportarPdf, exportarPlanilha } from '@/lib/exportacao'
 
 function formatDate(value) {
@@ -30,9 +31,8 @@ export function Movimentacoes() {
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(null)
 
-  const carregar = useCallback(async () => {
+  const atualizar = useCallback(async () => {
     try {
-      setLoading(true)
       const [movimentacoesData, produtosData] = await Promise.all([
         listarMovimentacoes(filtros),
         listarProdutos(),
@@ -41,12 +41,21 @@ export function Movimentacoes() {
       setProdutos(produtosData || [])
     } catch (err) {
       setErro(err.message)
-    } finally {
-      setLoading(false)
     }
   }, [filtros])
 
+  const carregar = useCallback(async () => {
+    try {
+      setLoading(true)
+      await atualizar()
+    } finally {
+      setLoading(false)
+    }
+  }, [atualizar])
+
   useEffect(() => { carregar() }, [carregar])
+
+  useAutoRefresh(atualizar, 10000)
 
   function linhasMovimentacoes() {
     return movimentacoes.map((movimentacao) => [

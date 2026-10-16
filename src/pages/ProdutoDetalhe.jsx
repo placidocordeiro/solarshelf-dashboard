@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { buscarProduto } from '@/api/produtos'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 
 function formatDate(value) {
   if (!value) return '—'
@@ -27,20 +28,28 @@ export function ProdutoDetalhe() {
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(null)
 
+  const atualizar = useCallback(async () => {
+    try {
+      const data = await buscarProduto(id)
+      setProduto(data)
+    } catch (err) {
+      setErro(err.message)
+    }
+  }, [id])
+
   useEffect(() => {
     async function carregar() {
       try {
         setLoading(true)
-        const data = await buscarProduto(id)
-        setProduto(data)
-      } catch (err) {
-        setErro(err.message)
+        await atualizar()
       } finally {
         setLoading(false)
       }
     }
     carregar()
-  }, [id])
+  }, [atualizar])
+
+  useAutoRefresh(atualizar, 10000)
 
   const tags = Array.isArray(produto?.tags)
     ? produto.tags
